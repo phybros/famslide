@@ -13,6 +13,10 @@ The first sync downloads the album and builds the display images, so a large alb
 
 After a successful sync, photos removed from the album leave the slideshow catalog and their cached originals and display JPEGs are deleted. Old composed scene files are cleaned up too. Set `PRUNE_REMOVED_PHOTOS=false` to retain photos removed from the album.
 
+## Published image
+
+GitHub Actions runs the Go and browser tests on every pull request. Commits to `main` run the same tests, then publish `ghcr.io/phybros/famslide:latest` and a `sha-<commit>` tag for amd64 and arm64 servers. The workflow uses GitHub's package token; no registry secret is needed. If the package is private, the server must authenticate to GHCR before pulling it.
+
 ## Configuration
 
 | Variable | Default | Purpose |
