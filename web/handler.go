@@ -19,8 +19,9 @@ import (
 var files embed.FS
 
 type Server struct {
-	Store *storage.Store
-	Sync  *syncer.Syncer
+	Store      *storage.Store
+	Sync       *syncer.Syncer
+	ManualSync bool
 }
 
 func (s *Server) Handler() http.Handler {
@@ -41,7 +42,9 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/status", s.status)
 	mux.HandleFunc("GET /api/photos", s.photos)
 	mux.HandleFunc("GET /api/scenes", s.scenes)
-	mux.HandleFunc("POST /api/sync", s.syncNow)
+	if s.ManualSync {
+		mux.HandleFunc("POST /api/sync", s.syncNow)
+	}
 	mux.HandleFunc("GET /media/{id}", s.media)
 	return mux
 }
@@ -73,7 +76,7 @@ func (s *Server) status(w http.ResponseWriter, r *http.Request) {
 		}
 		return nil
 	})
-	jsonResponse(w, map[string]any{"album_name": c.AlbumName, "photo_count": len(c.Photos), "scene_count": len(c.Scenes), "last_sync": c.LastSync, "last_sync_added": c.LastSyncAdded, "last_sync_updated": c.LastSyncUpdated, "sync_status": state.Status, "last_error": state.LastError, "disk_bytes": disk, "manifest_version": c.Version})
+	jsonResponse(w, map[string]any{"album_name": c.AlbumName, "photo_count": len(c.Photos), "scene_count": len(c.Scenes), "last_sync": c.LastSync, "last_sync_added": c.LastSyncAdded, "last_sync_updated": c.LastSyncUpdated, "sync_status": state.Status, "last_error": state.LastError, "disk_bytes": disk, "manifest_version": c.Version, "manual_sync_enabled": s.ManualSync})
 }
 
 func (s *Server) photos(w http.ResponseWriter, r *http.Request) {

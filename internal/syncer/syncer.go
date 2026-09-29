@@ -22,16 +22,15 @@ type State struct {
 }
 
 type Syncer struct {
-	source        icloud.AlbumSource
-	store         *storage.Store
-	width, height int
-	prune         bool
-	mu            sync.Mutex
-	state         State
+	source icloud.AlbumSource
+	store  *storage.Store
+	prune  bool
+	mu     sync.Mutex
+	state  State
 }
 
-func New(source icloud.AlbumSource, store *storage.Store, width, height int, prune bool) *Syncer {
-	return &Syncer{source: source, store: store, width: width, height: height, prune: prune, state: State{Status: "idle"}}
+func New(source icloud.AlbumSource, store *storage.Store, prune bool) *Syncer {
+	return &Syncer{source: source, store: store, prune: prune, state: State{Status: "idle"}}
 }
 func (s *Syncer) State() State { s.mu.Lock(); defer s.mu.Unlock(); return s.state }
 
@@ -108,7 +107,7 @@ func (s *Syncer) sync(ctx context.Context) error {
 			}
 			continue
 		}
-		w, h, err := media.Derivative(tmpName, display, s.width, s.height)
+		w, h, err := media.Derivative(tmpName, display)
 		if err != nil {
 			os.Remove(tmpName)
 			if firstErr == nil {

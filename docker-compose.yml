@@ -11,7 +11,5 @@ services:
       SYNC_INTERVAL: 15m
       HTTP_PORT: "8080"
       DATA_DIR: /data
-      DISPLAY_WIDTH: "1080"
-      DISPLAY_HEIGHT: "1920"
-      DISPLAY_ORIENTATION: portrait
       PRUNE_REMOVED_PHOTOS: "true"
+      ENABLE_MANUAL_SYNC: ${ENABLE_MANUAL_SYNC:-false}

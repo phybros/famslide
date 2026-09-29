@@ -46,7 +46,9 @@ func WriteJPEG(path string, img image.Image) error {
 	return os.Rename(name, path)
 }
 
-func Derivative(original, dst string, maxW, maxH int) (int, int, error) {
+const displayMaxDimension = 1920
+
+func Derivative(original, dst string) (int, int, error) {
 	img, err := Decode(original)
 	if err != nil {
 		return 0, 0, err
@@ -56,7 +58,7 @@ func Derivative(original, dst string, maxW, maxH int) (int, int, error) {
 	if w < 1 || h < 1 || w > 16000 || h > 16000 {
 		return 0, 0, fmt.Errorf("invalid image dimensions")
 	}
-	scale := min(1.0, min(float64(maxW)/float64(w), float64(maxH)/float64(h)))
+	scale := min(1.0, float64(displayMaxDimension)/float64(max(w, h)))
 	dw, dh := max(1, int(float64(w)*scale)), max(1, int(float64(h)*scale))
 	out := image.NewRGBA(image.Rect(0, 0, dw, dh))
 	draw.CatmullRom.Scale(out, out.Bounds(), img, b, draw.Over, nil)

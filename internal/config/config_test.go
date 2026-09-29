@@ -28,3 +28,21 @@ func TestPruningDefaultsOnAndCanBeDisabled(t *testing.T) {
 		t.Fatalf("disabled pruning: %#v, %v", c, err)
 	}
 }
+
+func TestManualSyncDefaultsOffAndCanBeEnabled(t *testing.T) {
+	t.Setenv("ICLOUD_ALBUM_URL", "https://www.icloud.com/sharedalbum/#B125ON9t3mbLNC")
+	t.Setenv("ENABLE_MANUAL_SYNC", "")
+	c, err := Load()
+	if err != nil || c.ManualSync {
+		t.Fatalf("default manual sync: %#v, %v", c, err)
+	}
+	t.Setenv("ENABLE_MANUAL_SYNC", "true")
+	c, err = Load()
+	if err != nil || !c.ManualSync {
+		t.Fatalf("enabled manual sync: %#v, %v", c, err)
+	}
+	t.Setenv("ENABLE_MANUAL_SYNC", "invalid")
+	if _, err := Load(); err == nil {
+		t.Fatal("invalid ENABLE_MANUAL_SYNC accepted")
+	}
+}
