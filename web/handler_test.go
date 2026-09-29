@@ -39,7 +39,7 @@ func TestAPIKeepsServingOldSceneAndHidesAlbumURL(t *testing.T) {
 	if err := store.Save(storage.Catalog{AlbumName: "Family", Photos: map[string]storage.Photo{}, Scenes: []storage.Scene{{ID: "fedcba9876543210fedcba98", Image: "/media/fedcba9876543210fedcba98"}}, Version: "v2"}); err != nil {
 		t.Fatal(err)
 	}
-	worker := syncer.New(failingSource{}, store, 108, 192, false)
+	worker := syncer.New(failingSource{}, store, false)
 	handler := (&Server{Store: store, Sync: worker}).Handler()
 	r := httptest.NewRecorder()
 	handler.ServeHTTP(r, httptest.NewRequest(http.MethodGet, "/media/"+oldID, nil))
@@ -63,6 +63,25 @@ func TestAPIKeepsServingOldSceneAndHidesAlbumURL(t *testing.T) {
 	}
 	if strings.Contains(r.Body.String(), "icloud.com") {
 		t.Fatal("album URL leaked")
+	}
+	if status["manual_sync_enabled"] != false {
+		t.Fatalf("manual sync should be disabled by default: %#v", status)
+	}
+	r = httptest.NewRecorder()
+	handler.ServeHTTP(r, httptest.NewRequest(http.MethodGet, "/admin", nil))
+	if !strings.Contains(r.Body.String(), `<button id="sync" hidden>`) {
+		t.Fatal("manual sync button is not hidden initially")
+	}
+	r = httptest.NewRecorder()
+	handler.ServeHTTP(r, httptest.NewRequest(http.MethodPost, "/api/sync", nil))
+	if r.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("disabled sync route: %d", r.Code)
+	}
+	handler = (&Server{Store: store, Sync: worker, ManualSync: true}).Handler()
+	r = httptest.NewRecorder()
+	handler.ServeHTTP(r, httptest.NewRequest(http.MethodGet, "/api/status", nil))
+	if err := json.Unmarshal(r.Body.Bytes(), &status); err != nil || status["manual_sync_enabled"] != true {
+		t.Fatalf("enabled manual sync status: %#v, %v", status, err)
 	}
 	r = httptest.NewRecorder()
 	handler.ServeHTTP(r, httptest.NewRequest(http.MethodPost, "/api/sync", nil))

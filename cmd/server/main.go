@@ -39,7 +39,7 @@ func main() {
 		slog.Error("scene migration failed", "error", err)
 		os.Exit(1)
 	}
-	syncWorker := syncer.New(source, store, cfg.Width, cfg.Height, cfg.Prune)
+	syncWorker := syncer.New(source, store, cfg.Prune)
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	go func() {
@@ -55,7 +55,7 @@ func main() {
 			}
 		}
 	}()
-	server := &http.Server{Addr: ":" + cfg.Port, Handler: (&web.Server{Store: store, Sync: syncWorker}).Handler(), ReadHeaderTimeout: 10 * time.Second}
+	server := &http.Server{Addr: ":" + cfg.Port, Handler: (&web.Server{Store: store, Sync: syncWorker, ManualSync: cfg.ManualSync}).Handler(), ReadHeaderTimeout: 10 * time.Second}
 	go func() {
 		<-ctx.Done()
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

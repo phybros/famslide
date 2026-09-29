@@ -49,7 +49,7 @@ func TestIncrementalSyncKeepsCacheOffline(t *testing.T) {
 		t.Fatal(err)
 	}
 	fake := &fakeSource{album: &icloud.Album{Name: "Family", Assets: []icloud.Asset{{ID: "one", Version: "v1"}, {ID: "two", Version: "v1"}}}}
-	s := New(fake, store, 108, 192, false)
+	s := New(fake, store, false)
 	if err := s.Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
@@ -115,7 +115,7 @@ func TestPruningRemovesAllCachedMediaForMissingPhotos(t *testing.T) {
 		{ID: "updated", Version: "v1"},
 		{ID: "removed", Version: "v1"},
 	}}}
-	s := New(fake, store, 108, 192, true)
+	s := New(fake, store, true)
 	if err := s.Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
