@@ -2,6 +2,8 @@
 
 Famslide syncs a public iCloud Shared Album to local storage and displays it as a fullscreen slideshow.
 
+Photos are analyzed locally for faces during sync. A padded bounding box around all detected faces guides cropping; when that region cannot fit a tile, the whole photo is shown. Photos with detected faces stay still to keep faces visible. Photos without detections retain centered cropping and motion. Detection does not identify people or send photos to an external service. Existing cached photos are analyzed on the next successful album fetch without downloading them again.
+
 ## Docker
 
 In Photos, enable **Public Website** for a Shared Album and copy its link. Then run:

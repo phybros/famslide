@@ -37,6 +37,7 @@ body.slideshow { overflow: hidden; cursor: none; }
 .tile.motion-pan-x img { animation: pan-x 20s linear both; }
 .tile.motion-pan-y img { animation: pan-y 20s linear both; }
 .tile.motion-burns img { animation: burns 20s linear both; }
+.tile.face-aware img { animation: none; transform: none; }
 @keyframes zoom-in { from { transform: translate3d(0,0,0) scale(1); } to { transform: translate3d(0,0,0) scale(1.3); } }
 @keyframes zoom-out { from { transform: translate3d(0,0,0) scale(1.3); } to { transform: translate3d(0,0,0) scale(1); } }
 @keyframes pan-x { from { transform: translate3d(-8%,0,0) scale(1.25); } to { transform: translate3d(8%,0,0) scale(1.25); } }

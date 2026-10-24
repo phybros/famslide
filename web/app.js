@@ -27,6 +27,13 @@
     if (!layer.scene) return;
     const photos = photosFor(layer.scene);
     layer.className = `scene-layer layout-${chooseLayout(photos)}` + (layer.classList.contains('visible') ? ' visible' : '');
+    layer.querySelectorAll('.tile').forEach((tile, i) => {
+      const crop = FamslideLayout.faceCrop(photos[i], tile.clientWidth, tile.clientHeight);
+      const image = tile.querySelector('img');
+      tile.classList.toggle('face-aware', !!crop);
+      image.style.objectFit = crop?.fit || 'cover';
+      image.style.objectPosition = crop ? `${crop.x}% ${crop.y}%` : 'center';
+    });
   }
 
   function imageReady(image) {
