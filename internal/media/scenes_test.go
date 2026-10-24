@@ -69,3 +69,13 @@ func TestUpgradeOldCatalogWithoutNetwork(t *testing.T) {
 		t.Fatal("manifest changed on repeat migration")
 	}
 }
+
+func TestSceneIncludesFaceBoundsAndChangesIdentity(t *testing.T) {
+	p := storage.Photo{ID: "one", Version: "v1", Display: "display/photo.jpg", Width: 100, Height: 100}
+	before := BuildScenes([]storage.Photo{p})[0]
+	p.FaceBounds = &storage.Bounds{X: .1, Y: .2, Width: .3, Height: .4}
+	after := BuildScenes([]storage.Photo{p})[0]
+	if after.ID == before.ID || after.Photos[0].FaceBounds != p.FaceBounds {
+		t.Fatal("face metadata missing from scene identity or manifest")
+	}
+}

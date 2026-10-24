@@ -12,16 +12,26 @@ import (
 	"time"
 )
 
+// Bounds is a rectangle in normalized image coordinates, with a top-left origin.
+type Bounds struct {
+	X      float64 `json:"x"`
+	Y      float64 `json:"y"`
+	Width  float64 `json:"width"`
+	Height float64 `json:"height"`
+}
+
 type Photo struct {
-	ID          string    `json:"id"`
-	Version     string    `json:"version"`
-	Original    string    `json:"original"`
-	Display     string    `json:"display"`
-	Width       int       `json:"width"`
-	Height      int       `json:"height"`
-	Orientation string    `json:"orientation"`
-	DateTaken   time.Time `json:"date_taken,omitempty"`
-	SyncedAt    time.Time `json:"synced_at"`
+	FaceBounds   *Bounds   `json:"face_bounds,omitempty"`
+	FaceDetector string    `json:"face_detector,omitempty"`
+	ID           string    `json:"id"`
+	Version      string    `json:"version"`
+	Original     string    `json:"original"`
+	Display      string    `json:"display"`
+	Width        int       `json:"width"`
+	Height       int       `json:"height"`
+	Orientation  string    `json:"orientation"`
+	DateTaken    time.Time `json:"date_taken,omitempty"`
+	SyncedAt     time.Time `json:"synced_at"`
 }
 
 type Scene struct {
@@ -33,10 +43,11 @@ type Scene struct {
 }
 
 type ScenePhoto struct {
-	ID     string `json:"id"`
-	URL    string `json:"url"`
-	Width  int    `json:"width"`
-	Height int    `json:"height"`
+	FaceBounds *Bounds `json:"face_bounds,omitempty"`
+	ID         string  `json:"id"`
+	URL        string  `json:"url"`
+	Width      int     `json:"width"`
+	Height     int     `json:"height"`
 }
 
 type Catalog struct {

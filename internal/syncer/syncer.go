@@ -69,6 +69,7 @@ func (s *Syncer) sync(ctx context.Context) error {
 	seen := make(map[string]bool, len(album.Assets))
 	var obsolete []storage.Photo
 	added, updated, skipped := 0, 0, 0
+	analyzed := false
 	var firstErr error
 	for _, asset := range album.Assets {
 		if err := ctx.Err(); err != nil {
@@ -83,6 +84,18 @@ func (s *Syncer) sync(ctx context.Context) error {
 		if exists && prior.Version == asset.Version {
 			if _, displayErr := os.Stat(filepath.Join(s.store.Dir(), prior.Display)); displayErr == nil {
 				if _, originalErr := os.Stat(filepath.Join(s.store.Dir(), prior.Original)); originalErr == nil {
+					if prior.FaceDetector != media.FaceDetectorVersion {
+						bounds, err := media.DetectFaces(filepath.Join(s.store.Dir(), prior.Display))
+						if err != nil {
+							if firstErr == nil {
+								firstErr = fmt.Errorf("face detection failed: %w", err)
+							}
+						} else {
+							prior.FaceBounds, prior.FaceDetector = bounds, media.FaceDetectorVersion
+							c.Photos[asset.ID] = prior
+							analyzed = true
+						}
+					}
 					skipped++
 					continue
 				}
@@ -123,7 +136,15 @@ func (s *Syncer) sync(ctx context.Context) error {
 		if h >= w {
 			orientation = "portrait"
 		}
-		c.Photos[asset.ID] = storage.Photo{ID: asset.ID, Version: asset.Version, Original: originalRel, Display: displayRel, Width: w, Height: h, Orientation: orientation, DateTaken: asset.DateTaken, SyncedAt: time.Now()}
+		bounds, faceErr := media.DetectFaces(display)
+		detectorVersion := media.FaceDetectorVersion
+		if faceErr != nil {
+			detectorVersion = ""
+			if firstErr == nil {
+				firstErr = fmt.Errorf("face detection failed: %w", faceErr)
+			}
+		}
+		c.Photos[asset.ID] = storage.Photo{FaceBounds: bounds, FaceDetector: detectorVersion, ID: asset.ID, Version: asset.Version, Original: originalRel, Display: displayRel, Width: w, Height: h, Orientation: orientation, DateTaken: asset.DateTaken, SyncedAt: time.Now()}
 		if exists {
 			updated++
 			if prior.Version != asset.Version {
@@ -142,7 +163,7 @@ func (s *Syncer) sync(ctx context.Context) error {
 		}
 	}
 	photos := storage.SortedPhotos(c)
-	if added > 0 || updated > 0 || len(c.Scenes) == 0 || len(c.Photos) != len(s.store.Snapshot().Photos) || (len(c.Scenes) > 0 && len(c.Scenes[0].Photos) == 0) {
+	if analyzed || added > 0 || updated > 0 || len(c.Scenes) == 0 || len(c.Photos) != len(s.store.Snapshot().Photos) || (len(c.Scenes) > 0 && len(c.Scenes[0].Photos) == 0) {
 		c.Scenes = media.BuildScenes(photos)
 		c.Version = storage.Key(fmt.Sprintf("%d:%d:%s", time.Now().UnixNano(), len(c.Scenes), c.AlbumName))
 	}

@@ -1,6 +1,7 @@
 package media
 
 import (
+	"encoding/json"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -64,9 +65,10 @@ func BuildScenes(photos []storage.Photo) []storage.Scene {
 		scenePhotos := make([]storage.ScenePhoto, 0, len(plan.Photos))
 		for _, p := range plan.Photos {
 			ids = append(ids, p.ID)
-			versions = append(versions, p.ID+":"+p.Version+":"+p.Display)
+			focus, _ := json.Marshal(p.FaceBounds)
+			versions = append(versions, p.ID+":"+p.Version+":"+p.Display+":"+string(focus))
 			key := strings.TrimSuffix(filepath.Base(p.Display), ".jpg")
-			scenePhotos = append(scenePhotos, storage.ScenePhoto{ID: p.ID, URL: "/media/" + key, Width: p.Width, Height: p.Height})
+			scenePhotos = append(scenePhotos, storage.ScenePhoto{FaceBounds: p.FaceBounds, ID: p.ID, URL: "/media/" + key, Width: p.Width, Height: p.Height})
 		}
 		id := storage.Key("dynamic-v1:" + plan.Layout + ":" + strings.Join(versions, "|"))
 		scenes = append(scenes, storage.Scene{ID: id, PhotoIDs: ids, Photos: scenePhotos, Layout: plan.Layout})

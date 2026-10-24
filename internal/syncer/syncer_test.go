@@ -163,3 +163,46 @@ func TestPruningRemovesAllCachedMediaForMissingPhotos(t *testing.T) {
 		}
 	}
 }
+
+func TestCachedPhotosGetFaceAnalysisWithoutDownload(t *testing.T) {
+	store, err := storage.Open(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	fake := &fakeSource{album: &icloud.Album{Assets: []icloud.Asset{{ID: "one", Version: "v1"}}}}
+	s := New(fake, store, false)
+	if err := s.Run(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	c := store.Snapshot()
+	p := c.Photos["one"]
+	if p.FaceDetector == "" || p.FaceBounds != nil {
+		t.Fatalf("blank image analysis: %+v", p)
+	}
+	p.FaceDetector = ""
+	c.Photos["one"] = p
+	if err := store.Save(c); err != nil {
+		t.Fatal(err)
+	}
+	before := c.Version
+	if err := s.Run(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	got := store.Snapshot()
+	if fake.downloads != 1 || got.Photos["one"].FaceDetector == "" || got.Version == before {
+		t.Fatal("cached photo was not analyzed without download and manifest refresh")
+	}
+	if err := s.Run(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if store.Snapshot().Version != got.Version {
+		t.Fatal("no-face result was processed again")
+	}
+	reopened, err := storage.Open(store.Dir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reopened.Snapshot().Photos["one"].FaceDetector == "" {
+		t.Fatal("analysis did not survive restart")
+	}
+}
