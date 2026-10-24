@@ -55,3 +55,19 @@ test('missing or malformed face bounds use existing rendering', () => {
   assert.equal(faceCrop({width: 100, height: 100}, 100, 100), null);
   assert.equal(faceCrop({width: 100, height: 100, face_bounds: {x: -1, y: 0, width: .2, height: .2}}, 100, 100), null);
 });
+
+
+test('four landscapes stack on portrait screens and form a grid on landscape screens', () => {
+  const photos = Array.from({length: 4}, () => ({width: 1600, height: 900}));
+  assert.equal(chooseLayout(photos, 1080, 1920), 'quad-rows');
+  assert.equal(chooseLayout(photos, 1920, 1080), 'quad-grid');
+});
+
+test('face bounds influence layout while wide face groups retain the whole image', () => {
+  const photos = [{width: 1600, height: 900}, {width: 900, height: 1600}, {width: 1600, height: 900}];
+  assert.equal(chooseLayout(photos, 1920, 1080), 'triple-lead-top');
+  photos[2].face_bounds = {x: .4, y: .4, width: .2, height: .2};
+  assert.equal(chooseLayout(photos, 1920, 1080), 'triple-cols');
+  photos[2].face_bounds = {x: .05, y: .05, width: .9, height: .9};
+  assert.equal(chooseLayout(photos, 1920, 1080), 'triple-lead-top');
+});

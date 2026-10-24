@@ -4,6 +4,7 @@
   const duration = 20000;
   const fade = 1500;
   const motions = ['motion-in', 'motion-out', 'motion-pan-x', 'motion-pan-y', 'motion-burns'];
+  const buildPlaylist = (source, previous = []) => FamslidePlaylist.buildPlaylist(source, previous, Math.random, {width: innerWidth, height: innerHeight});
   const chooseLayout = photos => FamslideLayout.chooseLayout(photos, innerWidth, innerHeight);
   let manifest = null;
   let pending = null;
@@ -76,10 +77,10 @@
     if (pending) {
       manifest = pending;
       pending = null;
-      playlist = FamslidePlaylist.buildPlaylist(manifest, playlist);
+      playlist = buildPlaylist(manifest, playlist);
       index = 0;
     } else if (++index >= playlist.length) {
-      playlist = FamslidePlaylist.buildPlaylist(manifest, playlist);
+      playlist = buildPlaylist(manifest, playlist);
       index = 0;
     }
   }
@@ -118,7 +119,7 @@
         empty.classList.remove('hidden');
         failures = 0;
         if (pending) { manifest = pending; pending = null; }
-        playlist = FamslidePlaylist.buildPlaylist(manifest, playlist);
+        playlist = buildPlaylist(manifest, playlist);
         index = 0;
         timer = setTimeout(showNext, 10000);
       } else {
@@ -138,7 +139,7 @@
       next.scenes ||= [];
       if (!playlist.length) {
         manifest = next;
-        playlist = FamslidePlaylist.buildPlaylist(next);
+        playlist = buildPlaylist(next);
         index = 0;
         if (playlist.length) showNext();
       } else if (next.version !== manifest.version) {
