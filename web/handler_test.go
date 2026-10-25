@@ -97,3 +97,27 @@ func TestAPIKeepsServingOldSceneAndHidesAlbumURL(t *testing.T) {
 	}
 	t.Fatal("manual sync did not run after response")
 }
+
+func TestScenesIncludesSlideshowInterval(t *testing.T) {
+	store, err := storage.Open(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		interval time.Duration
+		want     int64
+	}{{0, 20000}, {45 * time.Second, 45000}} {
+		handler := (&Server{Store: store, SlideshowInterval: tc.interval}).Handler()
+		r := httptest.NewRecorder()
+		handler.ServeHTTP(r, httptest.NewRequest(http.MethodGet, "/api/scenes", nil))
+		var manifest struct {
+			Interval int64 `json:"slideshow_interval_ms"`
+		}
+		if err := json.Unmarshal(r.Body.Bytes(), &manifest); err != nil {
+			t.Fatal(err)
+		}
+		if r.Code != http.StatusOK || manifest.Interval != tc.want {
+			t.Fatalf("response: %d %s", r.Code, r.Body.String())
+		}
+	}
+}

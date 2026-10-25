@@ -18,6 +18,8 @@ docker run -d --name famslide --restart unless-stopped \
 
 Open `http://<server-ip>:8080/` for the slideshow or `http://<server-ip>:8080/admin` for sync status. Photos are cached in `./data`. Sync runs at startup and every 15 minutes by default. To pin a release, replace `:latest` with a version tag such as `:v0.0.1`.
 
+Each scene displays for 20 seconds by default, including the 1.5-second fade. Set `SLIDESHOW_INTERVAL=30s` to change it (for Docker, add `-e SLIDESHOW_INTERVAL=30s`; for Compose, set it in `.env` and recreate the container). Open players pick up the setting within a minute, starting with a subsequent scene.
+
 The slideshow adapts to the browser window. Newly cached display images are limited to 1920 pixels on their longest edge. Existing cached images remain until their album photos change.
 
 ## Docker Compose
@@ -41,6 +43,7 @@ services:
       - ./data:/data
     environment:
       ICLOUD_ALBUM_URL: ${ICLOUD_ALBUM_URL}
+      SLIDESHOW_INTERVAL: ${SLIDESHOW_INTERVAL:-20s}
       ENABLE_MANUAL_SYNC: ${ENABLE_MANUAL_SYNC:-false}
 ```
 
@@ -57,6 +60,7 @@ Manual sync is disabled by default. Setting `ENABLE_MANUAL_SYNC=true` shows the 
 | Variable | Default | Function |
 | --- | --- | --- |
 | `ICLOUD_ALBUM_URL` | Required | Public iCloud Shared Album link to sync. |
+| `SLIDESHOW_INTERVAL` | `20s` | Time between scene transitions, including the fade; accepts durations from `2s` to `24h` (e.g. `30s`, `1m`). |
 | `SYNC_INTERVAL` | `15m` | Time between automatic syncs; minimum `1m`. |
 | `HTTP_PORT` | `8080` | Port the HTTP server listens on. |
 | `DATA_DIR` | `/data` | Directory for the photo cache and catalog. |

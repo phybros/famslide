@@ -1,7 +1,7 @@
 (() => {
   const layers = [document.getElementById('scene-a'), document.getElementById('scene-b')];
   const empty = document.getElementById('empty');
-  const duration = 20000;
+  let duration = 20000;
   const fade = 1500;
   const motions = ['motion-in', 'motion-out', 'motion-pan-x', 'motion-pan-y', 'motion-burns'];
   const buildPlaylist = (source, previous = []) => FamslidePlaylist.buildPlaylist(source, previous, Math.random, {width: innerWidth, height: innerHeight});
@@ -48,6 +48,7 @@
   function prepare(scene, layer) {
     layer.replaceChildren();
     layer.scene = scene;
+    layer.style.setProperty('--scene-duration', `${duration}ms`);
     const images = [];
     photosFor(scene).forEach((photo, i) => {
       const tile = document.createElement('div');
@@ -137,6 +138,9 @@
       if (!response.ok) throw new Error('manifest unavailable');
       const next = await response.json();
       next.scenes ||= [];
+      if (Number.isFinite(next.slideshow_interval_ms) && next.slideshow_interval_ms >= 2000 && next.slideshow_interval_ms <= 86400000) {
+        duration = next.slideshow_interval_ms;
+      }
       if (!playlist.length) {
         manifest = next;
         playlist = buildPlaylist(next);

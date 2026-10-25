@@ -19,9 +19,10 @@ import (
 var files embed.FS
 
 type Server struct {
-	Store      *storage.Store
-	Sync       *syncer.Syncer
-	ManualSync bool
+	Store             *storage.Store
+	Sync              *syncer.Syncer
+	ManualSync        bool
+	SlideshowInterval time.Duration
 }
 
 func (s *Server) Handler() http.Handler {
@@ -87,7 +88,11 @@ func (s *Server) photos(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) scenes(w http.ResponseWriter, r *http.Request) {
 	c := s.Store.Snapshot()
-	jsonResponse(w, map[string]any{"version": c.Version, "scenes": c.Scenes})
+	interval := s.SlideshowInterval
+	if interval == 0 {
+		interval = 20 * time.Second
+	}
+	jsonResponse(w, map[string]any{"version": c.Version, "scenes": c.Scenes, "slideshow_interval_ms": interval.Milliseconds()})
 }
 
 func (s *Server) syncNow(w http.ResponseWriter, r *http.Request) {

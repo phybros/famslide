@@ -11,12 +11,13 @@ import (
 )
 
 type Config struct {
-	AlbumURL     string
-	SyncInterval time.Duration
-	Port         string
-	DataDir      string
-	Prune        bool
-	ManualSync   bool
+	AlbumURL          string
+	SyncInterval      time.Duration
+	SlideshowInterval time.Duration
+	Port              string
+	DataDir           string
+	Prune             bool
+	ManualSync        bool
 }
 
 func Load() (Config, error) {
@@ -25,6 +26,10 @@ func Load() (Config, error) {
 	c.SyncInterval, err = time.ParseDuration(env("SYNC_INTERVAL", "15m"))
 	if err != nil || c.SyncInterval < time.Minute {
 		return c, fmt.Errorf("SYNC_INTERVAL must be at least 1m")
+	}
+	c.SlideshowInterval, err = time.ParseDuration(env("SLIDESHOW_INTERVAL", "20s"))
+	if err != nil || c.SlideshowInterval < 2*time.Second || c.SlideshowInterval > 24*time.Hour {
+		return c, fmt.Errorf("SLIDESHOW_INTERVAL must be between 2s and 24h")
 	}
 	c.Prune, err = strconv.ParseBool(env("PRUNE_REMOVED_PHOTOS", "true"))
 	if err != nil {

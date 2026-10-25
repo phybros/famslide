@@ -55,7 +55,7 @@ func main() {
 			}
 		}
 	}()
-	server := &http.Server{Addr: ":" + cfg.Port, Handler: (&web.Server{Store: store, Sync: syncWorker, ManualSync: cfg.ManualSync}).Handler(), ReadHeaderTimeout: 10 * time.Second}
+	server := &http.Server{Addr: ":" + cfg.Port, Handler: (&web.Server{Store: store, Sync: syncWorker, ManualSync: cfg.ManualSync, SlideshowInterval: cfg.SlideshowInterval}).Handler(), ReadHeaderTimeout: 10 * time.Second}
 	go func() {
 		<-ctx.Done()
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
