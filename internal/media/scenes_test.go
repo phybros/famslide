@@ -23,6 +23,9 @@ func TestPlansShowEachPhotoOnce(t *testing.T) {
 	seen := map[string]int{}
 	layouts := map[string]bool{}
 	for _, plan := range plans {
+		if plan.Layout != "single" || len(plan.Photos) != 1 {
+			t.Fatal("server should leave viewport grouping to the player")
+		}
 		layouts[plan.Layout] = true
 		for _, p := range plan.Photos {
 			seen[p.ID]++
@@ -33,7 +36,7 @@ func TestPlansShowEachPhotoOnce(t *testing.T) {
 			t.Fatalf("photo %s appears %d times", p.ID, seen[p.ID])
 		}
 	}
-	for _, layout := range []string{"single", "side", "stack", "mixed"} {
+	for _, layout := range []string{"single"} {
 		if !layouts[layout] {
 			t.Fatalf("missing %s layout", layout)
 		}

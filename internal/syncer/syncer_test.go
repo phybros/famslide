@@ -54,16 +54,17 @@ func TestIncrementalSyncKeepsCacheOffline(t *testing.T) {
 		t.Fatal(err)
 	}
 	first := store.Snapshot()
-	if len(first.Photos) != 2 || len(first.Scenes) != 1 || first.Version == "" || fake.downloads != 2 {
+	if len(first.Photos) != 2 || len(first.Scenes) != 2 || first.Version == "" || fake.downloads != 2 {
 		t.Fatalf("unexpected first sync: %#v, downloads=%d", first, fake.downloads)
 	}
-	if len(first.Scenes[0].Photos) != 2 {
-		t.Fatal("pair scene is missing individual photos")
+	if len(first.Scenes[0].Photos) != 1 || len(first.Scenes[1].Photos) != 1 {
+		t.Fatal("single scenes are missing individual photos")
 	}
 	if entries, err := os.ReadDir(filepath.Join(dir, "scenes")); err != nil || len(entries) != 0 {
 		t.Fatalf("unexpected composed files: %d %v", len(entries), err)
 	}
-	for _, photo := range first.Scenes[0].Photos {
+	for _, scene := range first.Scenes {
+		photo := scene.Photos[0]
 		if photo.URL == "" || photo.Width != 80 || photo.Height != 120 {
 			t.Fatalf("bad scene photo: %#v", photo)
 		}
@@ -138,7 +139,7 @@ func TestPruningRemovesAllCachedMediaForMissingPhotos(t *testing.T) {
 		t.Fatal(err)
 	}
 	after := store.Snapshot()
-	if len(after.Photos) != 2 || len(after.Scenes) != 1 {
+	if len(after.Photos) != 2 || len(after.Scenes) != 2 {
 		t.Fatalf("removed photo remains in catalog: %#v", after)
 	}
 	if _, ok := after.Photos["removed"]; ok {

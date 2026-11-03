@@ -2,7 +2,7 @@
 
 Famslide syncs a public iCloud Shared Album to local storage and displays it as a fullscreen slideshow.
 
-Photos are analyzed locally for faces during sync. A padded bounding box around all detected faces guides cropping; when that region cannot fit a tile, the whole photo is shown. Photos with detected faces stay still to keep faces visible. Photos without detections retain centered cropping and motion. Detection does not identify people or send photos to an external service. Existing cached photos are analyzed on the next successful album fetch without downloading them again.
+Photos are analyzed locally for faces during sync. A padded bounding box around all detected faces guides cropping; when that region cannot fit a tile, the whole photo is shown. Photos without detections use centered cropping. All photos stay still, with instant scene changes. Matching-orientation photos appear singly; opposite-orientation photos appear in groups of up to three across landscape screens or down portrait screens. Detection does not identify people or send photos to an external service. Existing cached photos are analyzed on the next successful album fetch without downloading them again.
 
 ## Docker
 
@@ -60,7 +60,7 @@ Manual sync is disabled by default. Setting `ENABLE_MANUAL_SYNC=true` shows the 
 | Variable | Default | Function |
 | --- | --- | --- |
 | `ICLOUD_ALBUM_URL` | Required | Public iCloud Shared Album link to sync. |
-| `SLIDESHOW_INTERVAL` | `20s` | Time between scene transitions, including the fade; accepts durations from `2s` to `24h` (e.g. `30s`, `1m`). |
+| `SLIDESHOW_INTERVAL` | `20s` | Time between scene changes; accepts durations from `2s` to `24h` (e.g. `30s`, `1m`). |
 | `SYNC_INTERVAL` | `15m` | Time between automatic syncs; minimum `1m`. |
 | `HTTP_PORT` | `8080` | Port the HTTP server listens on. |
 | `DATA_DIR` | `/data` | Directory for the photo cache and catalog. |

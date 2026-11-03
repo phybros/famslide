@@ -19,38 +19,8 @@ func Plans(photos []storage.Photo) []ScenePlan {
 		return nil
 	}
 	plans := make([]ScenePlan, 0, len(photos))
-	var portraits, landscapes []storage.Photo
-	for _, p := range photos {
-		if p.Height >= p.Width {
-			portraits = append(portraits, p)
-		} else {
-			landscapes = append(landscapes, p)
-		}
-	}
-	mixed := min(len(portraits)/4, len(landscapes)/4)
-	for i := 0; i < mixed; i++ {
-		plans = append(plans, ScenePlan{[]storage.Photo{portraits[i], landscapes[2*i], landscapes[2*i+1]}, "mixed"})
-	}
-	portraits, landscapes = portraits[mixed:], landscapes[2*mixed:]
-	for i := 0; i < len(portraits); {
-		if len(portraits)-i >= 3 {
-			plans = append(plans, ScenePlan{[]storage.Photo{portraits[i]}, "single"})
-			plans = append(plans, ScenePlan{[]storage.Photo{portraits[i+1], portraits[i+2]}, "side"})
-			i += 3
-		} else if len(portraits)-i == 2 {
-			plans = append(plans, ScenePlan{[]storage.Photo{portraits[i], portraits[i+1]}, "side"})
-			i += 2
-		} else {
-			plans = append(plans, ScenePlan{[]storage.Photo{portraits[i]}, "single"})
-			i++
-		}
-	}
-	for i := 0; i < len(landscapes); i += 2 {
-		if i+1 < len(landscapes) {
-			plans = append(plans, ScenePlan{[]storage.Photo{landscapes[i], landscapes[i+1]}, "stack"})
-		} else {
-			plans = append(plans, ScenePlan{[]storage.Photo{landscapes[i]}, "single"})
-		}
+	for _, photo := range photos {
+		plans = append(plans, ScenePlan{[]storage.Photo{photo}, "single"})
 	}
 	sort.SliceStable(plans, func(i, j int) bool { return plans[i].Photos[0].DateTaken.Before(plans[j].Photos[0].DateTaken) })
 	return plans

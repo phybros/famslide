@@ -6,26 +6,12 @@ test('one photo fills the viewport', () => {
   assert.equal(chooseLayout([{width: 1600, height: 900}], 1080, 1920), 'single');
 });
 
-test('pairs rearrange when the viewport rotates', () => {
-  const landscape = [{width: 1600, height: 900}, {width: 1600, height: 900}];
-  const portrait = [{width: 900, height: 1600}, {width: 900, height: 1600}];
-  const mixed = [{width: 900, height: 1600}, {width: 1600, height: 900}];
-  assert.equal(chooseLayout(landscape, 1080, 1920), 'pair-rows');
-  assert.equal(chooseLayout(landscape, 1920, 1080), 'pair-rows');
-  assert.equal(chooseLayout(portrait, 1080, 1920), 'pair-cols');
-  assert.equal(chooseLayout(portrait, 1920, 1080), 'pair-cols');
-  assert.equal(chooseLayout(mixed, 1080, 1920), 'pair-rows');
-  assert.equal(chooseLayout(mixed, 1920, 1080), 'pair-cols');
-});
-
-test('mixed groups use the available viewport shape', () => {
-  const photos = [
-    {width: 900, height: 1600},
-    {width: 1600, height: 900},
-    {width: 1600, height: 900},
-  ];
-  assert.equal(chooseLayout(photos, 1080, 1920), 'triple-rows');
-  assert.equal(chooseLayout(photos, 1920, 1080), 'triple-lead-left');
+test('stacks follow the screen orientation', () => {
+  for (const count of [2, 3]) {
+    const photos = Array.from({length: count}, () => ({width: 900, height: 1600}));
+    assert.equal(chooseLayout(photos, 1920, 1080), 'stack-cols');
+    assert.equal(chooseLayout(photos, 1080, 1920), 'stack-rows');
+  }
 });
 
 const {faceCrop} = require('./layout.js');
@@ -54,20 +40,4 @@ test('portrait crops preserve faces near the top and bottom on resize', () => {
 test('missing or malformed face bounds use existing rendering', () => {
   assert.equal(faceCrop({width: 100, height: 100}, 100, 100), null);
   assert.equal(faceCrop({width: 100, height: 100, face_bounds: {x: -1, y: 0, width: .2, height: .2}}, 100, 100), null);
-});
-
-
-test('four landscapes stack on portrait screens and form a grid on landscape screens', () => {
-  const photos = Array.from({length: 4}, () => ({width: 1600, height: 900}));
-  assert.equal(chooseLayout(photos, 1080, 1920), 'quad-rows');
-  assert.equal(chooseLayout(photos, 1920, 1080), 'quad-grid');
-});
-
-test('face bounds influence layout while wide face groups retain the whole image', () => {
-  const photos = [{width: 1600, height: 900}, {width: 900, height: 1600}, {width: 1600, height: 900}];
-  assert.equal(chooseLayout(photos, 1920, 1080), 'triple-lead-top');
-  photos[2].face_bounds = {x: .4, y: .4, width: .2, height: .2};
-  assert.equal(chooseLayout(photos, 1920, 1080), 'triple-cols');
-  photos[2].face_bounds = {x: .05, y: .05, width: .9, height: .9};
-  assert.equal(chooseLayout(photos, 1920, 1080), 'triple-lead-top');
 });

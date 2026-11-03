@@ -2,8 +2,6 @@
   const layers = [document.getElementById('scene-a'), document.getElementById('scene-b')];
   const empty = document.getElementById('empty');
   let duration = 20000;
-  const fade = 1500;
-  const motions = ['motion-in', 'motion-out', 'motion-pan-x', 'motion-pan-y', 'motion-burns'];
   const buildPlaylist = (source, previous = []) => FamslidePlaylist.buildPlaylist(source, previous, Math.random, {width: innerWidth, height: innerHeight});
   const chooseLayout = photos => FamslideLayout.chooseLayout(photos, innerWidth, innerHeight);
   let manifest = null;
@@ -16,7 +14,7 @@
   let failures = 0;
   let fetching = false;
 
-  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+  let generation = 0;
 
   function photosFor(scene) {
     if (Array.isArray(scene.photos) && scene.photos.length) return scene.photos;
@@ -31,7 +29,6 @@
     layer.querySelectorAll('.tile').forEach((tile, i) => {
       const crop = FamslideLayout.faceCrop(photos[i], tile.clientWidth, tile.clientHeight);
       const image = tile.querySelector('img');
-      tile.classList.toggle('face-aware', !!crop);
       image.style.objectFit = crop?.fit || 'cover';
       image.style.objectPosition = crop ? `${crop.x}% ${crop.y}%` : 'center';
     });
@@ -48,12 +45,10 @@
   function prepare(scene, layer) {
     layer.replaceChildren();
     layer.scene = scene;
-    layer.style.setProperty('--scene-duration', `${duration}ms`);
     const images = [];
-    photosFor(scene).forEach((photo, i) => {
+    photosFor(scene).forEach(photo => {
       const tile = document.createElement('div');
       tile.className = 'tile';
-      tile.dataset.motion = motions[Math.floor(Math.random() * motions.length)];
       const image = document.createElement('img');
       image.alt = '';
       image.draggable = false;
@@ -87,6 +82,7 @@
   }
 
   async function showNext() {
+    const current = ++generation;
     clearTimeout(timer);
     if (!playlist.length) {
       empty.classList.remove('hidden');
@@ -98,20 +94,20 @@
     try {
       if (!prepared || prepared.id !== scene.id) prepared = prepare(scene, target);
       await prepared.ready;
+      if (current !== generation) return;
       failures = 0;
       empty.classList.add('hidden');
-      target.querySelectorAll('.tile').forEach(tile => tile.classList.add(tile.dataset.motion));
       target.classList.add('visible');
       layers[active].classList.remove('visible');
-      await wait(fade);
       layers[active].replaceChildren();
       layers[active].scene = null;
       layers[active].className = 'scene-layer';
       active = 1 - active;
       advance();
       prepareNext();
-      timer = setTimeout(showNext, duration - fade);
+      timer = setTimeout(showNext, duration);
     } catch (_) {
+      if (current !== generation) return;
       target.replaceChildren();
       target.scene = null;
       prepared = null;
@@ -154,10 +150,22 @@
   }
 
   let resizeQueued = false;
+  let landscape = innerWidth >= innerHeight;
   window.addEventListener('resize', () => {
     if (resizeQueued) return;
     resizeQueued = true;
-    requestAnimationFrame(() => { layers.forEach(applyLayout); resizeQueued = false; });
+    requestAnimationFrame(() => {
+      resizeQueued = false;
+      const nextLandscape = innerWidth >= innerHeight;
+      if (manifest && nextLandscape !== landscape) {
+        if (pending) { manifest = pending; pending = null; }
+        playlist = buildPlaylist(manifest, playlist);
+        index = 0;
+        prepared = null;
+        showNext();
+      } else layers.forEach(applyLayout);
+      landscape = nextLandscape;
+    });
   });
   let cursorTimer;
   window.addEventListener('pointermove', () => {
